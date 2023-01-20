@@ -806,9 +806,13 @@ class BOD(object):
             return BlacksmithBOD.acceptsProductItem(item)
         return False # dummy
     
-    def matchesTypeAndResource(item):
+    def matchesTypeAndResource(self, item):
         if self.skill == 'Fletcher':
             return FletcherBOD.matchesTypeAndResource(item)
+        if self.skill == 'Tailor':
+            return TailorBOD.matchesTypeAndResource(item)
+        if self.skill == 'Blacksmith':
+            return BlacksmithBOD.matchesTypeAndResource(item)
         Misc.SendMessage('BRAK DEFINICJI matchesTypeAndResource() w '+self.skill, 22)
         return False # dummy
         
@@ -1002,6 +1006,20 @@ class TailorBOD(BOD):
    
         return productValid and exceptionalValid and resourceValid
 
+    def matchesTypeAndResource(self, item):
+        props = Items.GetPropStringList(item)
+        #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
+        
+        productValid = item.ItemID == self.getProductItemID()
+        #exceptionalValid = not self.exceptional
+        resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
+        
+        for prop in props:
+            p = prop.lower()
+            if 'wyjatkowej jakosci' in p:
+                exceptionalValid = True
+   
+        return productValid and resourceValid
         
 class BlacksmithBOD(BOD):
     def __init__(self):
@@ -1082,5 +1100,20 @@ class BlacksmithBOD(BOD):
                 exceptionalValid = True
    
         return productValid and exceptionalValid and resourceValid
+       
+    def matchesTypeAndResource(self, item):
+        props = Items.GetPropStringList(item)
+        #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
+        
+        productValid = item.ItemID == self.getProductItemID()
+        #exceptionalValid = not self.exceptional
+        resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
+        
+        for prop in props:
+            p = prop.lower()
+            if 'wyjatkowej jakosci' in p:
+                exceptionalValid = True
+   
+        return productValid and resourceValid
         
 start()
