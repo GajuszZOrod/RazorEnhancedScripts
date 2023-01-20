@@ -3,11 +3,12 @@ import CraftBase
  
 #------------------
 # user customization here:
-bookOfFilled = 0xffffffff
 
-resourcesContainer = 0x402AD05C
+resourcesContainer = 0x4027A1A7     #  0x402AD05C
 
-retryCraftUponProductFailure = False # True  False
+
+retryCraftUponProductFailure = False # True / False
+bookOfFilled = 0xffffffff # unused
 
 #------------------
 bodGumpType =  1009311217
@@ -66,8 +67,7 @@ def fillBODItem(bodItem):
             fillBOD(bod) # sprobuj wypelnic zanim zrobisz
             recycleNonExceptional(bod)
             
-            missingAmount = bod.quantityMax - bod.quantityCurrent
-            craftItems(bod.getProductItemID(), missingAmount, bod.exceptional)
+            craftItems(bod)
             Misc.SendMessage('wypelniam stworzonymi...')
             if not fillBOD(bod):
                 fillBOD(bod) # again
@@ -179,7 +179,7 @@ def recycleNonExceptional(bod):
         Misc.Pause(200)
 
 def findProductsForBODRegardlessExceptional(bod, container):
-    products = findItemsInContainer(bod.getProductItemID(), container)
+    products = findItemsInContainer(bod.getProductItemID(), container, bod.getProductItemHue())
     #Misc.SendMessage('Number of candidate products: ' + str(len(products)))
     suitableProducts = []
     for product in products:
@@ -189,7 +189,7 @@ def findProductsForBODRegardlessExceptional(bod, container):
     return suitableProducts
         
 def findProductsForBOD(bod, container):
-    products = findItemsInContainer(bod.getProductItemID(), container)
+    products = findItemsInContainer(bod.getProductItemID(), container, bod.getProductItemHue())
     Misc.SendMessage('Number of candidate products: ' + str(len(products)))
     suitableProducts = []
     for product in products:
@@ -198,11 +198,13 @@ def findProductsForBOD(bod, container):
     Misc.SendMessage('Number of suitable products:  ' + str(len(suitableProducts)))
     return suitableProducts
     
-def findItemsInContainer(itemID, container):
+def findItemsInContainer(itemID, container, color = -1):
     #Misc.SendMessage('searching container ' + str(container.Serial))
     f = Items.Filter()
     f.Enabled = True
     f.Graphics = List[int]([itemID])
+    if color > 0:
+        f.Hues = List[int]([color])
     foundList = Items.ApplyFilter(f)
     result = []
     for item in foundList:
@@ -285,7 +287,11 @@ def craftTool(craftSystem, useUponCreation = True):
     
     return newTool   
     
-def craftItems(itemId, amount, exceptional):
+def craftItems(bod):
+    amount = bod.quantityMax - bod.quantityCurrent
+    itemId = bod.getProductItemID()
+    exceptional = bod.exceptional
+            
     Misc.SendMessage('Tworze ' + str(amount) + ' produktow: ' + str(itemId))
     if amount < 1:
         return
@@ -311,7 +317,9 @@ def craftItems(itemId, amount, exceptional):
         return
     Misc.SendMessage('Robimy!')
     
-    fetchResourcesForProducts(craftSystem, itemId, amount)
+    if not fetchResourcesForProducts(bod, amount):
+        Misc.SendMessage('BRAK SUROWCA', 33)
+        return
     Misc.Pause(500)
     
     firstTimeCraft = True
@@ -325,7 +333,7 @@ def craftItems(itemId, amount, exceptional):
         Misc.SendMessage('Robimy i='+str(i))
         gumpId = 2066278152
         Gumps.WaitForGump(gumpId, 3000)
-        oldProducts = findItemsInContainer(itemId, Player.Backpack)
+        oldProducts = findItemsInContainer(itemId, Player.Backpack, bod.getProductItemHue())
         products = []
         Journal.Clear()
         if firstTimeCraft:
@@ -349,7 +357,7 @@ def craftItems(itemId, amount, exceptional):
                 if tool == None:
                     Misc.SendMessage('Nie potrafie zdobyc kolejnego narzedzia')
                     return
-            products = findItemsInContainer(itemId, Player.Backpack)
+            products = findItemsInContainer(itemId, Player.Backpack, bod.getProductItemHue())
             if len(products) > len(oldProducts):
                 Misc.SendMessage('Stworzony.')
                 firstTimeCraft = False
@@ -373,23 +381,30 @@ def craftItems(itemId, amount, exceptional):
                 
         if len(products) <= len(oldProducts):
             if retryCraftUponProductFailure:
-                Misc.SendMessage('Nie stworzony. Probuj ponownie.', 1100)
+                Misc.SendMessage('Nie stworzony. Probuj ponownie.', 36)
                 i -= 1
             else:
-                Misc.SendMessage('Nie stworzony. Trudno.', 1100)
+                Misc.SendMessage('Nie stworzony. Trudno.', 36)
                 # nie probuj ponownie, bo braknie surowcow (nie ma 100% szansy na stworzenie luku/kuszy)
 
-def fetchResourcesForProducts(craftSystem, productId, amount):
-
+def fetchResourcesForProducts(bod, amount):
+    productId = bod.getProductItemID()
+    craftSystem = CraftSystem.createFromProductId(productId)
+    
     resource1Id = craftSystem.getResource1IdForProduct(productId)[0]
-    resource1Hue = craftSystem.getResource1HueForProduct(productId)
+    resource1Hue = bod.getResourceHue()
     resource1RequiredAmount = craftSystem.getResource1AmountForProduct(productId) * amount
 
-    #resource2Id = craftSystem.getResource2IdForProduct(productId)[0]
-    #resource2Hue = craftSystem.getResource2HueForProduct(productId)
-    #resource2RequiredAmount = craftSystem.getResource2AmountForProduct(productId) * amount
+    resource2Id = craftSystem.getResource2IdForProduct(productId)[0]
+    resource2Hue = bod.getResource2Hue()
+    resource2RequiredAmount = craftSystem.getResource2AmountForProduct(productId) * amount
+
+    Misc.SendMessage('resource1Id(' + str(resource1Id) + '), resource1Hue(' + str(resource1Hue) + '), resource1RequiredAmount(' + str(resource1RequiredAmount) + ')' )
     
-    return fetchResources(resource1Id, resource1Hue, resource1RequiredAmount) #and fetchResources(resource2Id, resource2Hue, resource2RequiredAmount)
+    Misc.SendMessage('resource2Id(' + str(resource2Id) + '), resource2Hue(' + str(resource2Hue) + '), resource2RequiredAmount(' + str(resource2RequiredAmount) + ')' )
+
+
+    return fetchResources(resource1Id, resource1Hue, resource1RequiredAmount) and fetchResources(resource2Id, resource2Hue, resource2RequiredAmount)
 
 
 def fetchResources(resourceId, resourceHue, resourceRequiredAmount):
@@ -410,10 +425,10 @@ def fetchResources(resourceId, resourceHue, resourceRequiredAmount):
     Misc.SendMessage('Pobieram surowiec: '+str(resourceRequiredAmount)+' (hue: '+str(resourceHue)+')')
 
     if containerResource == None:
-       Misc.SendMessage('Nie widze surowcowca 1 w pojemniku.')
+       Misc.SendMessage('Nie widze surowcowca ('+str(resourceId)+') w pojemniku.', 33)
        return False
     if containerResource.Amount < resourceRequiredAmount:
-       Misc.SendMessage('Za malo surowca 1 w pojemniku.')
+       Misc.SendMessage('Za malo surowca ('+str(resourceId)+') w pojemniku.', 33)
        return False
 
     Items.Move(containerResource, Player.Backpack, resourceRequiredAmount)
@@ -494,17 +509,11 @@ class CraftSystem(object):
     def getResource2IdForProduct(self, itemId):
         return 0xffffffff
         
-    def getResource1HueForProduct(self, itemId):
-        return 0xffffffff
-        
-    def getResource2HueForProduct(self, itemId):
-        return 0xffffffff
-        
     def getResource1AmountForProduct(self, itemId):
-        return 0
+        return 1
         
     def getResource2AmountForProduct(self, itemId):
-        return 0
+        return 1
         
     def isProper(self):
         return False
@@ -559,21 +568,7 @@ class Tailor(CraftSystem):
         else:
             Misc.SendMessage('Tailor resource2 unknown for product: ' + str(itemId), 1100)
             return 0xffffffff
-        
-    def getResource1HueForProduct(self, itemId):
-        if itemId in self.resource1HueByProductId.keys():
-            return self.resource1HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Tailor hue1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
-    def getResource2HueForProduct(self, itemId):
-        if itemId in self.resource2HueByProductId.keys():
-            return self.resource2HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Tailor hue2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
+
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
             return self.resource1AmountByProductId[itemId]
@@ -639,33 +634,19 @@ class Fletcher(CraftSystem):
             Misc.SendMessage('Fletcher resource2 unknown for product: ' + str(itemId), 1100)
             return 0xffffffff
         
-    def getResource1HueForProduct(self, itemId):
-        if itemId in self.resource1HueByProductId.keys():
-            return self.resource1HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Fletcher hue1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
-    def getResource2HueForProduct(self, itemId):
-        if itemId in self.resource2HueByProductId.keys():
-            return self.resource2HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Fletcher hue2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
             return self.resource1AmountByProductId[itemId]
         else:
             Misc.SendMessage('Fletcher amount1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return 1 # dummy
         
     def getResource2AmountForProduct(self, itemId):
         if itemId in self.resource2AmountByProductId.keys():
             return self.resource2AmountByProductId[itemId]
         else:
             Misc.SendMessage('Fletcher amount2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return 1 # dummy
         
     def isProper(self):
         return True
@@ -721,34 +702,20 @@ class Blacksmith(CraftSystem):
         else:
             Misc.SendMessage('Blacksmith resource2 unknown for product: ' + str(itemId), 1100)
             return 0xffffffff
-        
-    def getResource1HueForProduct(self, itemId):
-        if itemId in self.resource1HueByProductId.keys():
-            return self.resource1HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Blacksmith hue1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
-    def getResource2HueForProduct(self, itemId):
-        if itemId in self.resource2HueByProductId.keys():
-            return self.resource2HueByProductId[itemId]
-        else:
-            Misc.SendMessage('Blacksmith hue2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
-        
+
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
             return self.resource1AmountByProductId[itemId]
         else:
             Misc.SendMessage('Blacksmith amount1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return 1 # dummy
         
     def getResource2AmountForProduct(self, itemId):
         if itemId in self.resource2AmountByProductId.keys():
             return self.resource2AmountByProductId[itemId]
         else:
             Misc.SendMessage('Blacksmith amount2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return 1 # dummy
         
     def isProper(self):
         return True
@@ -786,6 +753,7 @@ class BOD(object):
             return TailorBOD.getProductItemID(item)
         if self.skill == 'Blacksmith':
             return BlacksmithBOD.getProductItemID(item)
+        Misc.SendMessage('ERROR BOD.getProductItemID()', 33)
         return -1 # dummy
 
     def getProductItemHue(self):
@@ -795,6 +763,27 @@ class BOD(object):
             return TailorBOD.getProductItemHue(item)
         if self.skill == 'Blacksmith':
             return BlacksmithBOD.getProductItemHue(item)
+        Misc.SendMessage('ERROR BOD.getProductItemHue()', 33)
+        return -1 # dummy (any hue)
+
+    def getResourceHue(self):
+        if self.skill == 'Fletcher':
+            return FletcherBOD.getResourceHue(item)
+        if self.skill == 'Tailor':
+            return TailorBOD.getResourceHue(item)
+        if self.skill == 'Blacksmith':
+            return BlacksmithBOD.getResourceHue(item)
+        Misc.SendMessage('ERROR BOD.getResourceHue()', 33)
+        return -1 # dummy (any hue)
+        
+    def getResource2Hue(self):
+        if self.skill == 'Fletcher':
+            return FletcherBOD.getResource2Hue(item)
+        if self.skill == 'Tailor':
+            return TailorBOD.getResource2Hue(item)
+        if self.skill == 'Blacksmith':
+            return BlacksmithBOD.getResource2Hue(item)
+        Misc.SendMessage('ERROR BOD.getResource2Hue()', 33)
         return -1 # dummy (any hue)
         
     def acceptsProductItem(item):
@@ -840,13 +829,13 @@ class FletcherBOD(BOD):
             if 'wyjatkowej jakosci' in p:
                 bod.exceptional = True
 
-            elif 'z jelitowych cieciw' in p:
+            elif 'wykonane z jelitowych cieciw' in p:
                 bod.resource2 = 'BowstringGut'
-            elif 'ze skorzanych cieciw' in p:
+            elif 'wykonane ze skorzanych cieciw' in p:
                 bod.resource2 = 'BowstringLeather'
-            elif 'z jedwabnych cieciw' in p:
+            elif 'wykonane z jedwabnych cieciw' in p:
                 bod.resource2 = 'BowstringSilk'
-            elif 'z konopnych cieciw' in p:
+            elif 'wykonane z konopnych cieciw' in p:
                 bod.resource2 = 'BowstringCannabis'
 
             elif 'do zrobienia' in p:
@@ -854,9 +843,18 @@ class FletcherBOD(BOD):
                 if f != -1:
                     bod.quantityMax = int(p[f+2:])
                     
-            elif 'musza byc wykonane z ' in p:
-                # TODO: support: RegularWood, OakWood, AshWood, YewWood, Heartwood, Bloodwood, Frostwood
-                666   
+            elif 'wykonane z drewna zywicznego' in p:
+                bod.resource = 'Oak'
+            elif 'wykonane z drewna pustego' in p:
+                bod.resource = 'Ash'
+            elif 'wykonane z drewna skamienialego' in p:
+                bod.resource = 'Yew'
+            elif 'wykonane z drewna gietkiego' in p:
+                bod.resource = 'Heartwood'
+            elif 'wykonane z drewna opalonego' in p:
+                bod.resource = 'Bloodwood'
+            elif 'wykonane z drewna zmarznietego' in p:
+                bod.resource = 'Frostwood'
 
         lastLine = props[len(props)-1].lower()
         f = lastLine.find(':')
@@ -867,54 +865,43 @@ class FletcherBOD(BOD):
         return bod
         
     def getProductItemID(self):
-        IDs = CraftBase.fletcherProductIdByName
-        if self.product in IDs.keys():
-            return IDs[self.product]
+        if self.product in CraftBase.fletcherProductIdByName.keys():
+            return CraftBase.fletcherProductIdByName[self.product]
         return -1
 
     def getProductItemHue(self):
-        colors = {
-            'RegularWood': 0,
-            # 'BowstringLeather': 0x046c,
-            # 'BowstringGut': 0x0475
-        } # TODO: support all woods, utilize CraftBase
-        if self.resource in colors.keys():
-            return colors[self.resource]
+        return self.getResourceHue()
+        
+    def getResourceHue(self):
+        #Misc.SendMessage('FletcherBOD.getResourceHue() self.resource: '+ str(self.resource))
+        if self.resource in CraftBase.resourcesHue.keys():
+            return CraftBase.resourcesHue[self.resource]
+        Misc.SendMessage('ERROR FletcherBOD.getResourceHue() ' + str(self.resource), 36)
+        return -1
+        
+    def getResource2Hue(self):
+        #Misc.SendMessage('FletcherBOD.getResource2Hue() self.resource2: '+ str(self.resource2))
+        if self.resource2 in CraftBase.resourcesHue.keys():
+            return CraftBase.resourcesHue[self.resource2]
+        Misc.SendMessage('ERROR FletcherBOD.getResource2Hue() ' + str(self.resource2), 36)
         return -1
         
     def acceptsProductItem(self, item):
-        props = Items.GetPropStringList(item)
-        
-        productValid = item.ItemID == self.getProductItemID()
         exceptionalValid = not self.exceptional
-        resourceValid = item.Hue == self.getProductItemHue()
-        resource2Valid = False
         
+        props = Items.GetPropStringList(item)
         for prop in props:
             p = prop.lower()
             if 'wyjatkowej jakosci' in p:
                 exceptionalValid = True
-            elif 'cieciwa' in p:
-                txt = p.split()[1]
-                bowstringType = '[undetermined]'
-                if txt == 'jelitowa':
-                    bowstringType = 'BowstringGut'
-                elif txt == 'skorzana':
-                    bowstringType = 'BowstringLeather'
-                elif txt == 'konopna':
-                    bowstringType = 'BowstringCannabis'
-                elif txt == 'jedwabna':
-                    bowstringType = 'BowstringSilk'
-                if bowstringType == self.resource2:
-                    resource2Valid = True
+                break
    
-        return productValid and exceptionalValid and resourceValid and resource2Valid
+        return self.matchesTypeAndResource(item) and exceptionalValid
         
     def matchesTypeAndResource(self, item): # sprawdza czy item pasuje, ale bez uwzgledniania Exceptional
         props = Items.GetPropStringList(item)
         
         productValid = item.ItemID == self.getProductItemID()
-        #exceptionalValid = not self.exceptional
         resourceValid = item.Hue == self.getProductItemHue()
         resource2Valid = False
         
@@ -980,38 +967,39 @@ class TailorBOD(BOD):
         return bod
         
     def getProductItemID(self):
-        IDs = CraftBase.tailorProductIdByName
-        if self.product in IDs.keys():
-            return IDs[self.product]
+        if self.product in CraftBase.tailorProductIdByName.keys():
+            return CraftBase.tailorProductIdByName[self.product]
         return -1
 
     def getProductItemHue(self):
-        colors = { 'cloth': -1, 'spined': -1 } # TODO: support  leather colors
-        if self.resource in colors.keys():
-            return colors[self.resource]
+        return self.getResourceHue()
+        
+    def getResourceHue(self):
+        if self.resource in CraftBase.resourcesHue.keys():
+            return CraftBase.resourcesHue[self.resource]
+        return -1
+        
+    def getResource2Hue(self):
         return -1
         
     def acceptsProductItem(self, item):
-        props = Items.GetPropStringList(item)
         #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
-        
-        productValid = item.ItemID == self.getProductItemID()
         exceptionalValid = not self.exceptional
-        resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
         
+        props = Items.GetPropStringList(item)
         for prop in props:
             p = prop.lower()
             if 'wyjatkowej jakosci' in p:
                 exceptionalValid = True
+                break
    
-        return productValid and exceptionalValid and resourceValid
+        return self.matchesTypeAndResource(item) and exceptionalValid
 
     def matchesTypeAndResource(self, item):
         props = Items.GetPropStringList(item)
         #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
         
         productValid = item.ItemID == self.getProductItemID()
-        #exceptionalValid = not self.exceptional
         resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
         
         for prop in props:
@@ -1070,45 +1058,39 @@ class BlacksmithBOD(BOD):
         return bod
         
     def getProductItemID(self):
-        IDs = CraftBase.blacksmithProductIdByName
-            
-        if self.product in IDs.keys():
-            return IDs[self.product]
+        if self.product in blacksmithProductIdByName.keys():
+            return blacksmithProductIdByName[self.product]
         return -1
 
     def getProductItemHue(self):
-        colors = {
-            'Iron':   0,
-            'Shadow': 0x0966,
-            'Bronze': 0x0972
-            } # TODO: support metal colors
-        if self.resource in colors.keys():
-            return colors[self.resource]
+        return self.getResourceHue()
+        
+    def getResourceHue(self):
+        if self.resource in CraftBase.resourcesHue.keys():
+            return CraftBase.resourcesHue[self.resource]
+        return -1
+        
+    def getResource2Hue(self):
         return -1
         
     def acceptsProductItem(self, item):
-        props = Items.GetPropStringList(item)
-        #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
-        
-        productValid = item.ItemID == self.getProductItemID()
         exceptionalValid = not self.exceptional
-        resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
         
+        props = Items.GetPropStringList(item)
         for prop in props:
             p = prop.lower()
             if 'wyjatkowej jakosci' in p:
                 exceptionalValid = True
+                break
    
-        return productValid and exceptionalValid and resourceValid
+        return self.matchesTypeAndResource(item) and exceptionalValid
        
     def matchesTypeAndResource(self, item):
-        props = Items.GetPropStringList(item)
         #Misc.SendMessage(self.product + ' id=' +str(self.getProductItemHue()))
-        
         productValid = item.ItemID == self.getProductItemID()
-        #exceptionalValid = not self.exceptional
-        resourceValid = item.Hue == self.getProductItemHue() or self.getProductItemHue() == -1
+        resourceValid = item.Hue == self.getProductItemHue()
         
+        props = Items.GetPropStringList(item)
         for prop in props:
             p = prop.lower()
             if 'wyjatkowej jakosci' in p:
