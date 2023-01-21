@@ -58,7 +58,7 @@ tailorInternalBase = [
     ['bandana', 0x1540, gump(1, 9), ['Cloth', 2], []],
     ['kapelusz', 0x1713, gump(1, 16), ['Cloth', 11], []],
     ['czapka', 0x1715, gump(1, 23), ['Cloth', 11], []],
-    ['szeroki kapelusz', 0x1714, gump(1, 30), ['Cloth', 11], []],
+    ['szeroki kapelusz', 0x1714, gump(1, 30), ['Cloth', 12], []],
     ['slomkowy kapelusz', 0x1717, gump(1, 37), ['Cloth', 10], []],
     ['wysoki slomkowy kapelusz', 0x1716, gump(1, 44), ['Cloth', 13], []],
     ['kapelusz maga', 0x1718, gump(1, 51), ['Cloth', 15], []],

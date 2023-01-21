@@ -395,16 +395,19 @@ def fetchResourcesForProducts(bod, amount):
     resource1Hue = bod.getResourceHue()
     resource1RequiredAmount = craftSystem.getResource1AmountForProduct(productId) * amount
 
-    resource2Id = craftSystem.getResource2IdForProduct(productId)[0]
-    resource2Hue = bod.getResource2Hue()
-    resource2RequiredAmount = craftSystem.getResource2AmountForProduct(productId) * amount
-
     Misc.SendMessage('resource1Id(' + str(resource1Id) + '), resource1Hue(' + str(resource1Hue) + '), resource1RequiredAmount(' + str(resource1RequiredAmount) + ')' )
     
-    Misc.SendMessage('resource2Id(' + str(resource2Id) + '), resource2Hue(' + str(resource2Hue) + '), resource2RequiredAmount(' + str(resource2RequiredAmount) + ')' )
+    resource2Ids = craftSystem.getResource2IdForProduct(productId)
+    if len(resource2Ids) > 0:
+        resource2Id = resource2Ids[0]
+        resource2Hue = bod.getResource2Hue()
+        resource2RequiredAmount = craftSystem.getResource2AmountForProduct(productId) * amount
 
+        Misc.SendMessage('resource2Id(' + str(resource2Id) + '), resource2Hue(' + str(resource2Hue) + '), resource2RequiredAmount(' + str(resource2RequiredAmount) + ')' )
 
-    return fetchResources(resource1Id, resource1Hue, resource1RequiredAmount) and fetchResources(resource2Id, resource2Hue, resource2RequiredAmount)
+        return fetchResources(resource1Id, resource1Hue, resource1RequiredAmount) and fetchResources(resource2Id, resource2Hue, resource2RequiredAmount)
+        
+    return fetchResources(resource1Id, resource1Hue, resource1RequiredAmount)
 
 
 def fetchResources(resourceId, resourceHue, resourceRequiredAmount):
@@ -507,7 +510,7 @@ class CraftSystem(object):
         return 0xffffffff
         
     def getResource2IdForProduct(self, itemId):
-        return 0xffffffff
+        return []
         
     def getResource1AmountForProduct(self, itemId):
         return 1
@@ -560,14 +563,14 @@ class Tailor(CraftSystem):
             return self.resource1IdByProductId[itemId]
         else:
             Misc.SendMessage('Tailor resource1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return []
         
     def getResource2IdForProduct(self, itemId):
         if itemId in self.resource2IdByProductId.keys():
             return self.resource2IdByProductId[itemId]
         else:
-            Misc.SendMessage('Tailor resource2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            Misc.SendMessage('Tailor resource2 unknown for product: ' + str(itemId), 0)
+            return []
 
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
@@ -625,14 +628,14 @@ class Fletcher(CraftSystem):
             return self.resource1IdByProductId[itemId]
         else:
             Misc.SendMessage('Fletcher resource1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return []
         
     def getResource2IdForProduct(self, itemId):
         if itemId in self.resource2IdByProductId.keys():
             return self.resource2IdByProductId[itemId]
         else:
             Misc.SendMessage('Fletcher resource2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return []
         
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
@@ -694,14 +697,14 @@ class Blacksmith(CraftSystem):
             return self.resource1IdByProductId[itemId]
         else:
             Misc.SendMessage('Blacksmith resource1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return []
         
     def getResource2IdForProduct(self, itemId):
         if itemId in self.resource2IdByProductId.keys():
             return self.resource2IdByProductId[itemId]
         else:
-            Misc.SendMessage('Blacksmith resource2 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            Misc.SendMessage('Blacksmith resource2 unknown for product: ' + str(itemId), 0)
+            return []
 
     def getResource1AmountForProduct(self, itemId):
         if itemId in self.resource1AmountByProductId.keys():
@@ -876,14 +879,14 @@ class FletcherBOD(BOD):
         #Misc.SendMessage('FletcherBOD.getResourceHue() self.resource: '+ str(self.resource))
         if self.resource in CraftBase.resourcesHue.keys():
             return CraftBase.resourcesHue[self.resource]
-        Misc.SendMessage('ERROR FletcherBOD.getResourceHue() ' + str(self.resource), 36)
+        #Misc.SendMessage('ERROR FletcherBOD.getResourceHue() ' + str(self.resource), 36)
         return -1
         
     def getResource2Hue(self):
         #Misc.SendMessage('FletcherBOD.getResource2Hue() self.resource2: '+ str(self.resource2))
         if self.resource2 in CraftBase.resourcesHue.keys():
             return CraftBase.resourcesHue[self.resource2]
-        Misc.SendMessage('ERROR FletcherBOD.getResource2Hue() ' + str(self.resource2), 36)
+        #Misc.SendMessage('ERROR FletcherBOD.getResource2Hue() ' + str(self.resource2), 36)
         return -1
         
     def acceptsProductItem(self, item):
@@ -1058,8 +1061,8 @@ class BlacksmithBOD(BOD):
         return bod
         
     def getProductItemID(self):
-        if self.product in blacksmithProductIdByName.keys():
-            return blacksmithProductIdByName[self.product]
+        if self.product in CraftBase.blacksmithProductIdByName.keys():
+            return CraftBase.blacksmithProductIdByName[self.product]
         return -1
 
     def getProductItemHue(self):
