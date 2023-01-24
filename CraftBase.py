@@ -34,7 +34,7 @@ resourcesHue = {
     'Agapite': 0x0979,
     'Verite': 0x089f,
     
-    'RegularWood': 0,  # 0x059c = giętkie, 0x065b = opalone, 0x047f = zmarzniete, 0x0393 = skamieniale, 0x0709 = puste, 0x07da = zywiczne
+    'RegularWood': 0,  # 0x059c = gietkie, 0x065b = opalone, 0x047f = zmarzniete, 0x0393 = skamieniale, 0x0709 = puste, 0x07da = zywiczne
     'Oak': 0x07da, # oak
     'Ash': 0x0709, # puste
     'Yew': 0x0393, # skamieniale
