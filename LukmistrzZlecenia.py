@@ -530,6 +530,7 @@ class Tailor(CraftSystem):
         self.resource1HueByProductId = CraftBase.resource1HueByProductId
         self.resource2HueByProductId = CraftBase.resource2HueByProductId
         self.resource1AmountByProductId = CraftBase.tailorResource1AmountByProductId
+        self.resource2AmountByProductId = CraftBase.tailorResource2AmountByProductId
 
     def getToolIds(self):
         return [0x0F9D]
@@ -577,10 +578,14 @@ class Tailor(CraftSystem):
             return self.resource1AmountByProductId[itemId]
         else:
             Misc.SendMessage('Tailor amount1 unknown for product: ' + str(itemId), 1100)
-            return 0xffffffff
+            return 1 # dummy
         
     def getResource2AmountForProduct(self, itemId):
-        return 0
+        if itemId in self.resource2AmountByProductId.keys():
+            return self.resource2AmountByProductId[itemId]
+        else:
+            Misc.SendMessage('Tailor amount2 unknown for product: ' + str(itemId), 1100)
+            return 1 # dummy
         
     def isProper(self):
         return True
@@ -959,7 +964,10 @@ class TailorBOD(BOD):
                     
             elif 'musza byc wykonane z ' in p:
             # zwykla skora lub material
-                666   
+                666 
+              
+            elif 'koscian' in p:
+                bod.resource2 = 'Bone'
         
         lastLine = props[len(props)-1].lower()
         f = lastLine.find(':')

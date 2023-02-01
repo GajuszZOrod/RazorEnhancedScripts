@@ -14,7 +14,9 @@ resourcesId = {
     
     'RegularWood': [0x1BD7],
     'BowstringLeather': [0x1535],
-    'Scale': [0x26B4]
+    'Scale': [0x26B4],
+    
+    'Bone': [0x0F7E]
 }
 
 resourcesHue = {
@@ -34,7 +36,7 @@ resourcesHue = {
     'Agapite': 0x0979,
     'Verite': 0x089f,
     
-    'RegularWood': 0,  # 0x059c = gietkie, 0x065b = opalone, 0x047f = zmarzniete, 0x0393 = skamieniale, 0x0709 = puste, 0x07da = zywiczne
+    'RegularWood': 0,  # 0x059c = giętkie, 0x065b = opalone, 0x047f = zmarzniete, 0x0393 = skamieniale, 0x0709 = puste, 0x07da = zywiczne
     'Oak': 0x07da, # oak
     'Ash': 0x0709, # puste
     'Yew': 0x0393, # skamieniale
@@ -48,6 +50,8 @@ resourcesHue = {
     'BowstringSilk': 0x0b46,  
     
     'Scale': 0, # luski, TODO
+    
+    'Bone': 0,
 }
 
 tailorInternalBase = [
@@ -134,12 +138,17 @@ tailorInternalBase = [
     ['kobieca skorzana zbroja', 0x1C06, gump(50, 30), ['Leather', 8], []],
     ['kobieca utwardzana skorzana zbroja', 0x1C02, gump(50, 37), ['Leather', 10], []],
     
-    #['skorzany utwardzany karczek', 0xffff, gump(43, 2), ['Leather', 6], []],
-    #['skorzane utwardzane rekawice', 0xffff, gump(43, 9), ['Leather', 8], []],
-    #['skorzane utwardzane naramienniki', 0xffff, gump(43, 16), ['Leather', 10], []],
-    #['skorzane utwardzane nogawice', 0xffff, gump(43, 23), ['Leather', 12], []],
+    ['skorzany utwardzany karczek', 0x13D6, gump(43, 2), ['Leather', 6], []],
+    ['skorzane utwardzane rekawice', 0x13D5, gump(43, 9), ['Leather', 8], []],
+    ['skorzane utwardzane naramienniki', 0x13DC, gump(43, 16), ['Leather', 10], []],
+    ['skorzane utwardzane nogawice', 0x13DA, gump(43, 23), ['Leather', 12], []],
     ['skorzana utwardzana tunika', 0x13DB, gump(43, 30), ['Leather', 14], []],
     
+    ['kosciany helm', 0x1451, gump(64, 2), ['Leather', 4], ['Bone', 2]],
+    ['kosciane rekawice', 0x1450, gump(64, 9), ['Leather', 6], ['Bone', 2]],
+    ['kosciane naramienniki', 0x144E, gump(64, 16), ['Leather', 8], ['Bone', 4]],
+    ['kosciane nakolanniki', 0x1452, gump(64, 23), ['Leather', 10], ['Bone', 6]],
+    ['kosciana tunika', 0x144F, gump(64, 30), ['Leather', 12], ['Bone', 10]],
 ]
 
 blacksmithInternalBase = [
@@ -232,6 +241,298 @@ fletcherInternalBase = [
 ]
 
 #----------------------------------
+
+blacksmithRewardsSmall = {}
+blacksmithRewardsBig = {
+    'ringmail': { # pierscieniowe
+        'norm': {
+            'Iron': {
+                10: '-',
+                15: '-',
+                20: '-'
+            },
+            'Dull Copper': {
+                10: '-',
+                15: '-',
+                20: 'powder'
+            },
+            'Shadow': {
+                10: 'powder',
+                15: 'powder',
+                20: 'runic dull'
+            },
+            'Copper': {
+                10: 'runic dull',
+                15: 'runic dull',
+                20: 'runic shadow'
+            },
+            'Bronze': {
+                10: 'runic shadow',
+                15: 'runic shadow',
+                20: 'runic copper'
+            },
+            'Gold': {
+                10: 'runic copper',
+                15: 'runic copper',
+                20: 'runic bronze'
+            },
+            'Agapite': {
+                10: 'runic bronze',
+                15: 'runic bronze',
+                20: 'runic gold'
+            },
+            'Verite': {
+                10: 'runic gold',
+                15: 'runic gold',
+                20: 'ancient 10'
+            },
+            'Valorite': {
+                10: 'ancient 10',
+                15: 'ancient 10',
+                20: 'PS 15'
+            },
+        },
+        'exp': {
+            'Iron': {
+                10: '-',
+                15: '-',
+                20: 'powder'
+            },
+            'Dull Copper': {
+                10: 'runic copper',
+                15: 'runic copper',
+                20: 'runic bronze'
+            },
+            'Shadow': {
+                10: 'runic bronze',
+                15: 'runic bronze',
+                20: 'runic gold'
+            },
+            'Copper': {
+                10: 'runic gold',
+                15: 'runic gold',
+                20: 'ancient 10'
+            },
+            'Bronze': {
+                10: 'ancient 10',
+                15: 'ancient 10',
+                20: 'PS 15'
+            },
+            'Gold': {
+                10: 'PS 15',
+                15: 'PS 15',
+                20: 'ancient 15'
+            },
+            'Agapite': {
+                10: 'ancient 15',
+                15: 'ancient 15',
+                20: 'PS 20'
+            },
+            'Verite': {
+                10: 'PS 20',
+                15: 'PS 20',
+                20: 'runic agapite'
+            },
+            'Valorite': {
+                10: 'runic agapite',
+                15: 'runic agapite',
+                20: 'ancient 30'
+            },
+        }
+    },
+    'chainmail': {  # kolcze
+        'norm': {
+            'Iron': {
+                10: '-',
+                15: '-',
+                20: '-'
+            },
+            'Dull Copper': {
+                10: 'runic dull',
+                15: 'runic dull',
+                20: 'runic shadow'
+            },
+            'Shadow': {
+                10: 'runic shadow',
+                15: 'runic shadow',
+                20: 'runic copper'
+            },
+            'Copper': {
+                10: 'runic copper',
+                15: { 60: 'PS 5', 30: 'runic shadow' },
+                20: 'runic bronze'
+            },
+            'Bronze': {
+                10: 'runic bronze',
+                15: 'runic bronze',
+                20: { 60: 'PS 10', 30: 'runic gold' }
+            },
+            'Gold': {
+                10: 'runic gold',
+                15: 'runic gold',
+                20: 'ancient 10'
+            },
+            'Agapite': {
+                10: 'ancient 10',
+                15: 'ancient 10',
+                20: 'PS 15'
+            },
+            'Verite': {
+                10: 'PS 15',
+                15: 'PS 15',
+                20: 'ancient 15'
+            },
+            'Valorite': {
+                10: 'ancient 15',
+                15: 'ancient 15',
+                20: 'PS 20'
+            },
+        },
+        'exp': {
+            'Iron': {
+                10: 'runic dull',
+                15: 'runic dull',
+                20: 'runic shadow'
+            },
+            'Dull Copper': {
+                10: 'runic gold',
+                15: 'runic gold',
+                20: 'ancient 10'
+            },
+            'Shadow': {
+                10: 'ancient 10',
+                15: 'ancient 10',
+                20: 'PS 15'
+            },
+            'Copper': {
+                10: 'PS 15',
+                15: 'PS 15',
+                20: 'ancient 15'
+            },
+            'Bronze': {
+                10: 'ancient 15',
+                15: 'ancient 15',
+                20: 'PS 20'
+            },
+            'Gold': {
+                10: 'PS 20',
+                15: 'PS 20',
+                20: 'runic agapite'
+            },
+            'Agapite': {
+                10: 'runic agapite',
+                15: 'runic agapite',
+                20: 'ancient 30'
+            },
+            'Verite': {
+                10: 'ancient 30',
+                15: 'ancient 30',
+                20: 'runic verite'
+            },
+            'Valorite': {
+                10: 'runic verite',
+                15: 'runic verite',
+                20: 'ancient 60'
+            },
+        }
+    },
+    'platemail': {
+        'norm': {
+            'Iron': {
+                10: '-',
+                15: '-',
+                20: 'powder'
+            },
+            'Dull Copper': {
+                10: 'runic copper',
+                15: {60: 'PS 5', 30: 'runic shadow'},
+                20: 'runic bronze'
+            },
+            'Shadow': {
+                10: 'runic bronze',
+                15: {60: 'PS 10', 30: 'runic copper'},
+                20: 'runic gold'
+            },
+            'Copper': {
+                10: 'runic gold',
+                15: 'runic gold',
+                20: 'ancient 10'
+            },
+            'Bronze': {
+                10: 'ancient 10',
+                15: 'ancient 10',
+                20: 'PS 15'
+            },
+            'Gold': {
+                10: 'PS 15',
+                15: 'PS 15',
+                20: 'ancient 15'
+            },
+            'Agapite': {
+                10: 'ancient 15',
+                15: 'ancient 15',
+                20: 'PS 20'
+            },
+            'Verite': {
+                10: 'PS 20',
+                15: 'PS 20',
+                20: 'runic agapite'
+            },
+            'Valorite': {
+                10: 'runic agapite',
+                15: 'runic agapite',
+                20: 'ancient 30'
+            },
+        },
+        'exp': {
+            'Iron': {
+                10: 'runic copper',
+                15: {60: 'PS 5', 30: 'runic shadow'},
+                20: 'runic bronze'
+            },
+            'Dull Copper': {
+                10: 'PS 15',
+                15: 'PS 15',
+                20: 'ancient 15'
+            },
+            'Shadow': {
+                10: 'ancient 15',
+                15: 'ancient 15',
+                20: 'PS 20'
+            },
+            'Copper': {
+                10: 'PS 20',
+                15: 'PS 20',
+                20: 'runic agapite'
+            },
+            'Bronze': {
+                10: 'runic agapite',
+                15: 'runic agapite',
+                20: 'ancient 30'
+            },
+            'Gold': {
+                10: 'ancient 30',
+                15: 'ancient 30',
+                20: 'runic verite'
+            },
+            'Agapite': {
+                10: 'runic verite',
+                15: 'runic verite',
+                20: 'ancient 60'
+            },
+            'Verite': {
+                10: 'ancient 60',
+                15: 'ancient 60',
+                20: 'runic valorite'
+            },
+            'Valorite': {
+                10: 'runic valorite',
+                15: 'runic valorite',
+                20: 'runic valorite'
+            },
+        }
+    }
+}
 
 #----------------------------------
 
