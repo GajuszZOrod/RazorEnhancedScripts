@@ -1,3 +1,4 @@
+from System import Int32 as int
 from System.Collections.Generic import List
 import CraftBase
  
